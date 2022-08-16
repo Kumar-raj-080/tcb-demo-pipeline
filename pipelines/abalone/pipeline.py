@@ -125,9 +125,9 @@ def get_pipeline(
     sagemaker_project_arn=None,
     role=None,
     default_bucket=None,
-    model_package_group_name="AbalonePackageGroup",
-    pipeline_name="AbalonePipeline",
-    base_job_prefix="Abalone",
+    model_package_group_name="BankCDPackageGroup",
+    pipeline_name="BankCDPipeline",
+    base_job_prefix="BankCD",
     processing_instance_type="ml.m5.xlarge",
     training_instance_type="ml.m5.xlarge",
 ):
@@ -176,12 +176,12 @@ def get_pipeline(
         arguments=["--input-data", input_data],
     )
     step_process = ProcessingStep(
-        name="PreprocessAbaloneData",
+        name="PreprocessBankCDData",
         step_args=step_args,
     )
 
     # training step for generating model artifacts
-    model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/AbaloneTrain"
+    model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/BankCDTrain"
     image_uri = sagemaker.image_uris.retrieve(
         framework="xgboost",
         region=region,
@@ -225,7 +225,7 @@ def get_pipeline(
         },
     )
     step_train = TrainingStep(
-        name="TrainAbaloneModel",
+        name="TrainBankCDModel",
         step_args=step_args,
     )
 
@@ -258,12 +258,12 @@ def get_pipeline(
         code=os.path.join(BASE_DIR, "evaluate.py"),
     )
     evaluation_report = PropertyFile(
-        name="AbaloneEvaluationReport",
+        name="BankCDEvaluationReport",
         output_name="evaluation",
         path="evaluation.json",
     )
     step_eval = ProcessingStep(
-        name="EvaluateAbaloneModel",
+        name="EvaluateBankCDModel",
         step_args=step_args,
         property_files=[evaluation_report],
     )
@@ -293,7 +293,7 @@ def get_pipeline(
         model_metrics=model_metrics,
     )
     step_register = ModelStep(
-        name="RegisterAbaloneModel",
+        name="RegisterBankCDModel",
         step_args=step_args,
     )
 
@@ -307,7 +307,7 @@ def get_pipeline(
         right=6.0,
     )
     step_cond = ConditionStep(
-        name="CheckMSEAbaloneEvaluation",
+        name="CheckMSEBankCDEvaluation",
         conditions=[cond_lte],
         if_steps=[step_register],
         else_steps=[],
